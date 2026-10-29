@@ -1,0 +1,6 @@
+/home/brian/ros2/chapt2/02_cpp_node_test/CMakeFiles/ros2_cpp_node.dir
+/home/brian/ros2/chapt2/02_cpp_node_test/CMakeFiles/uninstall.dir
+/home/brian/ros2/chapt2/02_cpp_node_test/CMakeFiles/ros2_cpp_uninstall.dir
+/home/brian/ros2/chapt2/02_cpp_node_test/CMakeFiles/test.dir
+/home/brian/ros2/chapt2/02_cpp_node_test/CMakeFiles/edit_cache.dir
+/home/brian/ros2/chapt2/02_cpp_node_test/CMakeFiles/rebuild_cache.dir

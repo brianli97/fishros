@@ -1,0 +1,22 @@
+# ROS 2 generated directories (at any workspace depth)
+build/
+install/
+log/
+
+# Python generated files
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# C/C++ build outputs
+*.o
+*.so
+
+# IDE settings
+.vscode/
+.idea/
+
+# Temporary editor files
+*.swp
+*~
