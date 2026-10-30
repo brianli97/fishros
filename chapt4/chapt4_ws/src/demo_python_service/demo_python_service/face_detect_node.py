@@ -7,6 +7,7 @@ import cv2
 import face_recognition
 import time
 import os
+from rcl_interfaces.msg import SetParametersResult
 
 class FaceDetectorionNode(Node):
     def __init__(self):
@@ -14,9 +15,21 @@ class FaceDetectorionNode(Node):
         self.bridge = CvBridge()
         self.service = self.create_service(FaceDetector, "/face_detect", self.detect_face_callback)
         self.default_image_path = os.path.join(get_package_share_directory("demo_python_service"), "resource/default.jpg")
-        self.upsample_times = 1
-        self.model = "hog"
+        self.declare_parameter("number_of_times_to_upsample", 1)
+        self.declare_parameter("model", "hog")
+        self.number_of_times_to_upsample = self.get_parameter("number_of_times_to_upsample").value
+        self.model = self.get_parameter("model").value
         self.get_logger().info(f"图像路径:{self.default_image_path}")
+        self.add_on_set_parameters_callback(self.parameters_callback)
+
+    def parameters_callback(self, parameters):
+        for parameter in parameters:
+            self.get_logger().info(f"{parameter.name}->{parameter.value}")
+            if parameter.name == "number_of_times_to_upsample":
+                self.number_of_times_to_upsample = parameter.value
+            if parameter.name == "model":
+                self.model = parameter.value
+        return SetParametersResult(successful=True)
 
     def detect_face_callback(self, request, response):
         if request.image.data:
@@ -25,7 +38,7 @@ class FaceDetectorionNode(Node):
             cv_image = cv2.imread(self.default_image_path)
         start_time = time.time()    
         self.get_logger().info("加载完图像，开始检测")
-        face_locations = face_recognition.face_locations(cv_image, number_of_times_to_upsample=self.upsample_times, model=self.model)
+        face_locations = face_recognition.face_locations(cv_image, number_of_times_to_upsample=self.number_of_times_to_upsample, model=self.model)
         end_time = time.time()
         self.get_logger().info(f"检测完成，耗时{end_time-start_time}")
         response.number = len(face_locations)
