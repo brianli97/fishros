@@ -14,14 +14,14 @@ using namespace std::chrono_literals;   // 可以使用 10s 100ms
 class PartolClient : public rclcpp::Node
 {
 public:
-        PartolClient() : Node("turtle_controller")
+        PartolClient() : Node("partol_client")
         {
             srand(time(NULL));  // 初始化随机数种子
             partol_client_ = this->create_client<Partol>("partol");
             timer_ = this->create_wall_timer(5s, [&]() -> void{
                 // 1.检测服务端是否上线
                 while(!this->partol_client_->wait_for_service(1s)) {
-                    if(rclcpp::ok()) {
+                    if(!rclcpp::ok()) {
                         RCLCPP_ERROR(this->get_logger(), "等待服务上线过程中,rclcpp挂了,我退下了");
                         return;
                     }
@@ -56,7 +56,7 @@ public:
             auto param_client = this->create_client<SetP>("/turtle_controller/set_parameters");
             // 1.检测服务端是否上线
             while(!param_client->wait_for_service(1s)) {
-                if(rclcpp::ok()) {
+                if(!rclcpp::ok()) {
                     RCLCPP_ERROR(this->get_logger(), "等待服务上线过程中,rclcpp挂了,我退下了");
                     return nullptr;
                 }
@@ -98,7 +98,7 @@ public:
                 if(result.successful==false){
                     RCLCPP_INFO(this->get_logger(), "参数更新失败, 原因：%s", result.reason.c_str());
                 }else{
-                    RCLCPP_INFO(this->get_logger(), "参数更新成功");
+                    RCLCPP_INFO(this->get_logger(), "参数更新成功， 参数k已修改为: %f", k);
                 }
             }
 
