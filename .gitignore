@@ -13,6 +13,10 @@ __pycache__/
 *.o
 *.so
 
+# Chapter 4 generated graph files
+chapt4/**/*.gv
+chapt4/**/*.pdf
+
 # IDE settings
 .vscode/
 .idea/
