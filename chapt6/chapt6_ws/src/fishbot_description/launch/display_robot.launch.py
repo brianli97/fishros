@@ -5,7 +5,7 @@ from ament_index_python.packages import get_package_share_directory
 def generate_launch_description():
     # 获取默认路径
     urdf_tutorial_path = get_package_share_directory("fishbot_description")
-    default_model_path = urdf_tutorial_path + "/urdf/first_robot.xacro"
+    default_model_path = urdf_tutorial_path + "/urdf/fishbot/fishbot.urdf.xacro"
     default_rviz_config_path = urdf_tutorial_path + "/config/display_robot_model.rviz"
     
     # 为 launch 声明参数
