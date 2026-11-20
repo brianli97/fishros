@@ -32,7 +32,7 @@
 
             <xacro:sphere_inertia m="0.05" r="0.016" />
         </link>
-        <joint name="${caster_name}_joint" type="fixed">
+        <joint name="${caster_name}_caster_joint" type="fixed">
             <parent link="base_link" />
             <child link="${caster_name}_caster_link" />
             <origin xyz="${xyz}" />
