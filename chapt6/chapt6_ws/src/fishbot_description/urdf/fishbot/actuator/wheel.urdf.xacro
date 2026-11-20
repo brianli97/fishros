@@ -32,7 +32,7 @@
 
             <xacro:cylinder_inertia m="0.05" r="0.032" h="0.04" />
         </link>
-        <joint name="${wheel_name}_joint" type="continuous">
+        <joint name="${wheel_name}_wheel_joint" type="continuous">
             <parent link="base_link" />
             <child link="${wheel_name}_wheel_link" />
             <origin xyz="${xyz}" />
