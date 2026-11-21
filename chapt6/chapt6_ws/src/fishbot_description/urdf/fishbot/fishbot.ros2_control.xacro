@@ -35,7 +35,14 @@
         
         <gazebo>
             <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
+                 <!-- 将两轮差速控制器的话题名称进行重映射 -->
+                <robot_param>robot_description</robot_param>
+                <robot_param_node>robot_state_publisher</robot_param_node>
                 <parameters>$(find fishbot_description)/config/fishbot_ros2_controller.yaml</parameters>
+                <ros>
+                    <remapping>/fishbot_diff_drive_controller/cmd_vel_unstamped:=/cmd_vel</remapping>
+                    <remapping>/fishbot_diff_drive_controller/odom:=/odom</remapping>
+                </ros>
             </plugin>
         </gazebo>
 
