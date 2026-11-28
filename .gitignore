@@ -3,6 +3,9 @@ build/
 install/
 log/
 
+# Generated patrol camera images (at any workspace depth)
+patrol_images/
+
 # Python generated files
 __pycache__/
 *.py[cod]

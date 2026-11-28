@@ -1,5 +1,7 @@
 import math
 import time
+from pathlib import Path
+from datetime import datetime
 
 import rclpy
 from geometry_msgs.msg import PoseStamped, Pose
@@ -8,6 +10,11 @@ from tf2_ros import TransformListener, Buffer
 from tf_transformations import euler_from_quaternion, quaternion_from_euler
 from rclpy.duration import Duration
 from autopatrol_interfaces.srv import SpeachText # 添加服务接口
+
+# 导入消息接口和相关定义
+from sensor_msgs.msg import Image
+from cv_bridge import CvBridge
+import cv2
 
 class PatrolNode(BasicNavigator):
     def __init__(self, node_name='patrol_node'):
@@ -27,6 +34,14 @@ class PatrolNode(BasicNavigator):
 
         # 语音合成客户端
         self.speach_client_ = self.create_client(SpeachText, 'speech_text')
+
+        # 订阅与保存图像相关定义
+        self.declare_parameter('image_save_path', '')
+        self.image_save_path = self.get_parameter('image_save_path').value
+        self.bridge = CvBridge()
+        self.latest_image = None
+        self.subscriptions_image = self.create_subscription(
+            Image, '/camera_sensor/image_raw', self.image_callback, 10)
 
     def get_pose_by_xyyaw(self, x, y, yaw):
         """
@@ -159,6 +174,38 @@ class PatrolNode(BasicNavigator):
         else:
             self.get_logger().warn('语音合成服务请求失败')
 
+    def image_callback(self, msg):
+        """
+        将最新的消息放到 latest_image 中
+        """
+        self.latest_image = msg
+
+    def record_image(self, target_index=0):
+        """等待到点后收到的下一帧图像，并保存到配置目录。"""
+        self.latest_image = None
+        deadline = time.monotonic() + 5.0
+        while rclpy.ok() and self.latest_image is None:
+            if time.monotonic() >= deadline:
+                self.get_logger().warn('等待摄像头图像超时，本次未保存图片')
+                return False
+            rclpy.spin_once(self, timeout_sec=0.1)
+        if self.latest_image is None:
+            return False
+        try:
+            directory = Path(self.image_save_path).expanduser() if self.image_save_path else Path.cwd() / 'patrol_images'
+            directory.mkdir(parents=True, exist_ok=True)
+            stamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
+            filename = directory / f'point_{target_index}_{stamp}.png'
+            cv_image = self.bridge.imgmsg_to_cv2(
+                self.latest_image, desired_encoding='bgr8')
+            if not cv2.imwrite(str(filename), cv_image):
+                raise OSError(f'无法写入图片：{filename}')
+            self.get_logger().info(f'目标 {target_index} 图片已保存：{filename.resolve()}')
+            return True
+        except Exception as exc:
+            self.get_logger().error(f'保存图片失败：{exc}')
+            return False
+
 def main():
     rclpy.init()
     patrol = PatrolNode()
@@ -174,6 +221,8 @@ def main():
             patrol.speach_text(text=f'准备前往目标点{x},{y}')
             if not patrol.nav_to_pose(target_pose, index, len(points)):
                 break
+            if not patrol.record_image(target_index=index):
+                patrol.get_logger().warn(f'目标 {index} 拍照失败，继续后续巡逻')
         else:
             patrol.get_logger().info('全部巡逻目标完成')
     finally:
