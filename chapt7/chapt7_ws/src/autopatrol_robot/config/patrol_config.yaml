@@ -1,0 +1,12 @@
+patrol_node:
+  ros__parameters:
+    use_sim_time: true
+    initial_point: [0.0, 0.0, 0.0]
+    # 小范围导航验证路线；每三个数为 x（米）、y（米）、yaw（弧度）。
+    target_points: [
+      0.7, 0.0, 0.0,
+      0.7, 0.5, 1.57,
+      0.0, 0.5, 3.14,
+      0.0, 0.0, -1.57,
+      0.0, 0.0, 0.0,
+    ]
