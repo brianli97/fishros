@@ -7,6 +7,7 @@ from nav2_simple_commander.robot_navigator import BasicNavigator, TaskResult
 from tf2_ros import TransformListener, Buffer
 from tf_transformations import euler_from_quaternion, quaternion_from_euler
 from rclpy.duration import Duration
+from autopatrol_interfaces.srv import SpeachText # 添加服务接口
 
 class PatrolNode(BasicNavigator):
     def __init__(self, node_name='patrol_node'):
@@ -23,6 +24,9 @@ class PatrolNode(BasicNavigator):
         # 实时位置获取 TF 相关定义
         self.buffer_ = Buffer()
         self.listener_ = TransformListener(self.buffer_, self)
+
+        # 语音合成客户端
+        self.speach_client_ = self.create_client(SpeachText, 'speech_text')
 
     def get_pose_by_xyyaw(self, x, y, yaw):
         """
@@ -135,16 +139,39 @@ class PatrolNode(BasicNavigator):
             except Exception as e:  
                 self.get_logger().warn(f'不能够获取坐标变换， 原因： {str(e)}')
 
+    def speach_text(self, text):
+        """
+        调用服务播放语音
+        """
+        while not self.speach_client_.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info(f'语音合成服务未上线，等待中...')
+
+        request = SpeachText.Request()
+        request.text = text
+        future = self.speach_client_.call_async(request)
+        rclpy.spin_until_future_complete(self, future)
+        if future.result() is not None:
+            result = future.result().result
+            if result:
+                self.get_logger().info(f'语音合成成功: {text}')
+            else:
+                self.get_logger().warn(f'语音合成失败: {text}')
+        else:
+            self.get_logger().warn('语音合成服务请求失败')
+
 def main():
     rclpy.init()
     patrol = PatrolNode()
+    patrol.speach_text(text='正在初始化位置')
     try:
         points = patrol.get_target_points()
         patrol.init_robot_pose()
+        patrol.speach_text(text='位置初始化完成')
         for index, (x, y, yaw) in enumerate(points, start=1):
             patrol.get_logger().info(
                 f'准备目标 {index}/{len(points)}: ({x}, {y}, yaw={yaw})')
             target_pose = patrol.get_pose_by_xyyaw(x, y, yaw)
+            patrol.speach_text(text=f'准备前往目标点{x},{y}')
             if not patrol.nav_to_pose(target_pose, index, len(points)):
                 break
         else:
